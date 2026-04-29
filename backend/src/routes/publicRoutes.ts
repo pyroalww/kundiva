@@ -2,6 +2,9 @@ import { Router, Request, Response } from 'express';
 
 import { questionController } from '../controllers/questionController';
 import { prisma } from '../utils/prisma';
+import { registrationService } from '../services/registrationService';
+import { applyRateLimit } from '../middleware/rateLimiter';
+import { questionUpload } from '../middleware/upload';
 
 const router = Router();
 
@@ -26,5 +29,24 @@ router.get('/stats', async (_req: Request, res: Response) => {
     totalSolutions
   });
 });
+
+// Registration request (public, unauthenticated)
+router.post(
+  '/register-request',
+  applyRateLimit({ windowMs: 60_000, max: 3, message: 'Çok sık kayıt talebi gönderiyorsunuz.' }),
+  questionUpload.single('studentId'),
+  async (req: Request, res: Response) => {
+    const { desiredUsername, password, fullName } = req.body;
+    if (!desiredUsername || !password || !fullName) {
+      res.status(400).json({ message: 'Tüm alanlar zorunludur.' });
+      return;
+    }
+    const studentIdPath = req.file ? `/uploads/${req.file.filename}` : undefined;
+    const request = await registrationService.submitRequest({
+      desiredUsername, password, fullName, studentIdPath
+    });
+    res.status(201).json(request);
+  }
+);
 
 export default router;

@@ -9,6 +9,7 @@ import publicRoutes from './publicRoutes';
 import questionRoutes from './questionRoutes';
 import supportRoutes from './supportRoutes';
 import teacherRoutes from './teacherRoutes';
+import profileRoutes from './profileRoutes';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use('/friends', friendRoutes);
 router.use('/messages', messageRoutes);
 router.use('/admin', adminRoutes);
 router.use('/support', supportRoutes);
+router.use('/profiles', profileRoutes);
 
 export default router;

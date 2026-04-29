@@ -17,6 +17,8 @@ import { LeaderboardPage } from './pages/LeaderboardPage';
 import { FriendsPage } from './pages/FriendsPage';
 import { MessagesPage } from './pages/MessagesPage';
 import { SupportPage } from './pages/SupportPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { RegisterRequestPage } from './pages/RegisterRequestPage';
 
 const ProtectedRoute: React.FC<{ role?: string | string[] }> = ({ role }) => {
   const { user, loading } = useAuth();
@@ -52,6 +54,8 @@ export const App: React.FC = () => {
         <Route path="/questions/discover" element={<QuestionDiscoverPage />} />
         <Route path="/questions/:id" element={<QuestionDetailPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/profile/:username" element={<ProfilePage />} />
+        <Route path="/register" element={<RegisterRequestPage />} />
 
         {/* Profile completion (auth required, no role check) */}
         <Route element={<ProtectedRoute />}>

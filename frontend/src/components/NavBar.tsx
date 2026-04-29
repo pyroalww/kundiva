@@ -119,11 +119,13 @@ export const NavBar: React.FC = () => {
                 )}
 
                 <div className="nav-user">
-                  <div className="nav-avatar">{user.firstName.charAt(0)}</div>
-                  <div className="nav-user-meta">
-                    <span className="nav-user-name">{user.firstName}</span>
-                    <span className="nav-user-role">{roleLabel} · {user.totalPoints ?? 0}✦</span>
-                  </div>
+                  <Link to={`/profile/${user.username}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="nav-avatar">{user.firstName.charAt(0)}</div>
+                    <div className="nav-user-meta">
+                      <span className="nav-user-name">{user.firstName}</span>
+                      <span className="nav-user-role">{roleLabel} · {user.totalPoints ?? 0}✦</span>
+                    </div>
+                  </Link>
                 </div>
 
                 <button className="nav-link nav-link--logout" type="button" onClick={handleLogout}>
@@ -133,9 +135,14 @@ export const NavBar: React.FC = () => {
             )}
 
             {!user && (
-              <Link to="/login" className="button nav-cta">
-                Giriş Yap
-              </Link>
+              <>
+                <Link to="/register" className="nav-link">
+                  Kayıt Ol
+                </Link>
+                <Link to="/login" className="button nav-cta">
+                  Giriş Yap
+                </Link>
+              </>
             )}
 
             {user?.role === 'STUDENT' && (

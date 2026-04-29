@@ -531,7 +531,8 @@ export const questionService = {
           select: {
             id: true,
             firstName: true,
-            lastName: true
+            lastName: true,
+            username: true
           }
         },
         answers: answerWithComments,

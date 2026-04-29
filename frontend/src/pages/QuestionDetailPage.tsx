@@ -10,7 +10,12 @@ import {
   markSolution,
   submitTeacherAnswer
 } from '../api/questions';
+import {
+  updateAdminQuestion, adminAiSolve, adminAddSolution, adminMarkSolution,
+  updateAdminAnswer, deleteAdminAnswer, deleteAdminQuestion
+} from '../api/admin';
 import { LoadingOverlay } from '../components/LoadingOverlay';
+import { MarkdownRenderer } from '../components/MarkdownRenderer';
 import { useAuth } from '../hooks/useAuth';
 import type { Comment, MediaAttachment, QuestionDetail, StudentSolution } from '../types';
 import { extractErrorMessage } from '../utils/errorMessage';
@@ -99,6 +104,17 @@ export const QuestionDetailPage: React.FC = () => {
   const [teacherResponse, setTeacherResponse] = useState('');
   const [teacherAttachments, setTeacherAttachments] = useState<File[]>([]);
   const [teacherSubmitting, setTeacherSubmitting] = useState(false);
+
+  // Admin editing states
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [editDesc, setEditDesc] = useState('');
+  const [editingAnswerId, setEditingAnswerId] = useState<string | null>(null);
+  const [editAnswerContent, setEditAnswerContent] = useState('');
+  const [adminSolText, setAdminSolText] = useState('');
+  const [adminLoading, setAdminLoading] = useState(false);
+  const isAdmin = user?.role === 'ADMIN';
 
   const loadQuestion = useCallback(async () => {
     if (!id) return;
@@ -298,6 +314,7 @@ export const QuestionDetailPage: React.FC = () => {
   if (!question) return <div className="card"><p>Soru bulunamadı.</p></div>;
 
   const isOwner = user?.id === question.studentId;
+  const canAdmin = user?.role === 'ADMIN';
   const solutions = question.solutions ?? [];
 
   return (
@@ -309,7 +326,17 @@ export const QuestionDetailPage: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
             <h1 style={{ marginBottom: '0.5rem' }}>
-              {question.title}
+              {editingTitle ? (
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
+                  <input className="input" value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ flex: 1 }} />
+                  <button className="button" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }} onClick={async () => { await updateAdminQuestion(question.id, { title: editTitle }); setEditingTitle(false); void loadQuestion(); }}>Kaydet</button>
+                  <button className="button ghost" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => setEditingTitle(false)}>İptal</button>
+                </div>
+              ) : (
+                <>{question.title}
+                  {canAdmin && <button className="button ghost" onClick={() => { setEditTitle(question.title); setEditingTitle(true); }} style={{ marginLeft: '0.5rem', padding: '0.2rem 0.4rem', fontSize: '0.7rem' }}>✏️</button>}
+                </>
+              )}
               {question.useKundivaAi && (
                 <span className="badge" style={{ marginLeft: '0.75rem', background: 'rgba(139,92,246,0.15)', color: '#7c3aed' }}>
                   KundivaAI ✓
@@ -325,7 +352,7 @@ export const QuestionDetailPage: React.FC = () => {
               {question.student && (
                 <>
                   <span>•</span>
-                  <span>Soran: {question.student.firstName} {question.student.lastName}</span>
+                  <Link to={`/profile/${(question as any).student?.username ?? question.studentId}`} style={{ color: 'var(--primary)' }}>Soran: {question.student.firstName} {question.student.lastName}</Link>
                 </>
               )}
               <span>•</span>
@@ -336,7 +363,20 @@ export const QuestionDetailPage: React.FC = () => {
             {STATUS_LABELS[question.status ?? 'PENDING']}
           </span>
         </div>
-        <p style={{ whiteSpace: 'pre-wrap', marginTop: '1rem', lineHeight: 1.7 }}>{question.description}</p>
+        {editingDesc ? (
+          <div style={{ marginTop: '1rem' }}>
+            <textarea className="input" rows={6} value={editDesc} onChange={e => setEditDesc(e.target.value)} />
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <button className="button" style={{ fontSize: '0.85rem' }} onClick={async () => { await updateAdminQuestion(question.id, { description: editDesc }); setEditingDesc(false); void loadQuestion(); }}>Kaydet</button>
+              <button className="button ghost" style={{ fontSize: '0.85rem' }} onClick={() => setEditingDesc(false)}>İptal</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ marginTop: '1rem' }}>
+            <MarkdownRenderer content={question.description} />
+            {canAdmin && <button className="button ghost" onClick={() => { setEditDesc(question.description); setEditingDesc(true); }} style={{ marginTop: '0.5rem', padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}>✏️ Düzenle</button>}
+          </div>
+        )}
         {question.attachments && question.attachments.length > 0 && (
           <div style={{ marginTop: '1rem' }}>
             {question.attachments.map((att) => (
@@ -358,6 +398,14 @@ export const QuestionDetailPage: React.FC = () => {
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               Çözüm arka planda işleniyor, hazır olduğunda burada görüntülenecektir.
             </p>
+          </div>
+        )}
+
+        {/* Admin toolbar */}
+        {canAdmin && (
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '1rem' }}>
+            <button className="button ghost" style={{ fontSize: '0.8rem' }} disabled={adminLoading} onClick={async () => { setAdminLoading(true); try { await adminAiSolve(question.id); void loadQuestion(); } catch {} setAdminLoading(false); }}>🤖 AI ile çözdür</button>
+            <button className="button ghost" style={{ fontSize: '0.8rem', color: 'var(--danger)' }} onClick={async () => { if (!confirm('Soruyu silmek istediğinize emin misiniz?')) return; await deleteAdminQuestion(question.id); window.location.href = '/library'; }}>🗑 Soruyu sil</button>
           </div>
         )}
       </div>
@@ -396,8 +444,22 @@ export const QuestionDetailPage: React.FC = () => {
                   </span>
                 </div>
 
-                {aiParsed ? renderAIAnswer(aiParsed) : (
-                  <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>{answer.content}</p>
+                {editingAnswerId === answer.id ? (
+                  <div>
+                    <textarea className="input" rows={5} value={editAnswerContent} onChange={e => setEditAnswerContent(e.target.value)} />
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                      <button className="button" style={{ fontSize: '0.8rem' }} onClick={async () => { await updateAdminAnswer(answer.id, editAnswerContent); setEditingAnswerId(null); void loadQuestion(); }}>Kaydet</button>
+                      <button className="button ghost" style={{ fontSize: '0.8rem' }} onClick={() => setEditingAnswerId(null)}>İptal</button>
+                    </div>
+                  </div>
+                ) : aiParsed ? renderAIAnswer(aiParsed) : (
+                  <MarkdownRenderer content={answer.content} />
+                )}
+                {canAdmin && editingAnswerId !== answer.id && (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <button className="button ghost" style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }} onClick={() => { setEditingAnswerId(answer.id); setEditAnswerContent(answer.content); }}>✏️ Düzenle</button>
+                    <button className="button ghost" style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', color: 'var(--danger)' }} onClick={async () => { if (!confirm('Yanıtı silmek?')) return; await deleteAdminAnswer(answer.id); void loadQuestion(); }}>🗑 Sil</button>
+                  </div>
                 )}
 
                 {renderAttachments(answer.attachments)}
@@ -445,17 +507,17 @@ export const QuestionDetailPage: React.FC = () => {
                 {new Date(solution.createdAt).toLocaleString('tr-TR')}
               </span>
             </div>
-            <p style={{ whiteSpace: 'pre-wrap', marginTop: '0.5rem', lineHeight: 1.7 }}>{solution.content}</p>
+            <div style={{ marginTop: '0.5rem' }}><MarkdownRenderer content={solution.content} /></div>
 
             {/* Mark as correct/incorrect - only question owner */}
-            {isOwner && solution.isCorrect === null && (
+            {(isOwner || canAdmin) && solution.isCorrect === null && (
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
                 <button
                   className="button"
                   type="button"
                   style={{ padding: '0.35rem 0.8rem', fontSize: '0.8rem' }}
                   disabled={markLoading === solution.id}
-                  onClick={() => handleMarkSolution(solution.id, true)}
+                  onClick={() => canAdmin ? adminMarkSolution(question.id, solution.id, true).then(() => loadQuestion()) : handleMarkSolution(solution.id, true)}
                 >
                   ✓ Doğru
                 </button>
@@ -464,7 +526,7 @@ export const QuestionDetailPage: React.FC = () => {
                   type="button"
                   style={{ padding: '0.35rem 0.8rem', fontSize: '0.8rem' }}
                   disabled={markLoading === solution.id}
-                  onClick={() => handleMarkSolution(solution.id, false)}
+                  onClick={() => canAdmin ? adminMarkSolution(question.id, solution.id, false).then(() => loadQuestion()) : handleMarkSolution(solution.id, false)}
                 >
                   ✗ Yanlış
                 </button>

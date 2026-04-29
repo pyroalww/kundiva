@@ -213,3 +213,58 @@ export const createAdminBannedIp = async (payload: { ipAddress: string; reason?:
 export const deleteAdminBannedIp = async (id: string) => {
   await apiClient.delete(`/admin/security/ip-bans/${id}`);
 };
+
+// Question management
+export const updateAdminQuestion = async (questionId: string, payload: { title?: string; description?: string; status?: string }) => {
+  const { data } = await apiClient.patch(`/admin/questions/${questionId}`, payload);
+  return data;
+};
+
+export const adminAiSolve = async (questionId: string) => {
+  const { data } = await apiClient.post(`/admin/questions/${questionId}/ai-solve`);
+  return data;
+};
+
+export const adminAddSolution = async (questionId: string, payload: { content: string; isCorrect?: boolean }) => {
+  const { data } = await apiClient.post(`/admin/questions/${questionId}/solutions`, payload);
+  return data;
+};
+
+export const adminMarkSolution = async (questionId: string, solutionId: string, isCorrect: boolean) => {
+  const { data } = await apiClient.patch(`/admin/questions/${questionId}/solutions/${solutionId}`, { isCorrect });
+  return data;
+};
+
+// Answer management
+export const updateAdminAnswer = async (answerId: string, content: string) => {
+  const { data } = await apiClient.patch(`/admin/answers/${answerId}`, { content });
+  return data;
+};
+
+export const deleteAdminAnswer = async (answerId: string) => {
+  await apiClient.delete(`/admin/answers/${answerId}`);
+};
+
+// Registration requests
+export const fetchRegistrationRequests = async () => {
+  const { data } = await apiClient.get('/admin/registration-requests');
+  return data as Array<{
+    id: string;
+    desiredUsername: string;
+    fullName: string;
+    studentIdPath?: string | null;
+    status: string;
+    rejectionNote?: string | null;
+    createdAt: string;
+  }>;
+};
+
+export const approveRegistrationRequest = async (id: string) => {
+  const { data } = await apiClient.post(`/admin/registration-requests/${id}/approve`);
+  return data;
+};
+
+export const rejectRegistrationRequest = async (id: string, note?: string) => {
+  const { data } = await apiClient.post(`/admin/registration-requests/${id}/reject`, { note });
+  return data;
+};

@@ -27,7 +27,10 @@ import {
   createAdminBannedIp,
   deleteAdminBannedIp,
   flagAdminMessage,
-  updateAdminUserRole
+  updateAdminUserRole,
+  fetchRegistrationRequests,
+  approveRegistrationRequest,
+  rejectRegistrationRequest
 } from '../api/admin';
 import { extractErrorMessage } from '../utils/errorMessage';
 import { LoadingOverlay } from '../components/LoadingOverlay';
@@ -51,6 +54,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [supportTickets, setSupportTickets] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [bannedIps, setBannedIps] = useState<any[]>([]);
+  const [regRequests, setRegRequests] = useState<any[]>([]);
   const [apiKeyForm, setApiKeyForm] = useState<{ provider: 'GEMINI' | 'IMAGEN'; key: string; priority: string }>(
     {
       provider: 'GEMINI',
@@ -83,6 +87,7 @@ export const AdminDashboardPage: React.FC = () => {
     | 'apiKeys'
     | 'support'
     | 'security'
+    | 'registration'
   >('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1268,6 +1273,47 @@ ogr3"
     </div>
   );
 
+  const renderRegistration = () => (
+    <div>
+      <h2 style={{ marginBottom: '1rem' }}>Kayıt Talepleri</h2>
+      {regRequests.length === 0 && <p style={{ color: 'var(--text-muted)' }}>Bekleyen talep yok.</p>}
+      {regRequests.map((req: any) => (
+        <div key={req.id} className="card" style={{
+          marginBottom: '0.75rem',
+          borderLeft: req.status === 'PENDING' ? '4px solid rgba(245,158,11,0.5)' : req.status === 'APPROVED' ? '4px solid rgba(16,185,129,0.5)' : '4px solid rgba(239,68,68,0.3)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div>
+              <strong>{req.fullName}</strong>
+              <span style={{ marginLeft: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>@{req.desiredUsername}</span>
+              <span className="badge" style={{ marginLeft: '0.5rem' }}>{req.status}</span>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(req.createdAt).toLocaleDateString('tr-TR')}</span>
+          </div>
+          {req.studentIdPath && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <img src={req.studentIdPath} alt="Öğrenci Kimliği" style={{ maxWidth: 300, borderRadius: 8 }} />
+            </div>
+          )}
+          {req.status === 'PENDING' && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+              <button className="button" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }} onClick={async () => {
+                await approveRegistrationRequest(req.id);
+                setRegRequests(await fetchRegistrationRequests());
+              }}>✓ Onayla</button>
+              <button className="button secondary" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }} onClick={async () => {
+                const note = prompt('Ret sebebi (isteğe bağlı):');
+                await rejectRegistrationRequest(req.id, note ?? undefined);
+                setRegRequests(await fetchRegistrationRequests());
+              }}>✗ Reddet</button>
+            </div>
+          )}
+          {req.rejectionNote && <p style={{ fontSize: '0.85rem', color: 'var(--danger)', marginTop: '0.5rem' }}>Ret: {req.rejectionNote}</p>}
+        </div>
+      ))}
+    </div>
+  );
+
   const renderActiveTab = (): ReactNode => {
     switch (activeTab) {
       case 'overview':
@@ -1292,6 +1338,8 @@ ogr3"
         return renderSecurity();
       case 'support':
         return renderSupport();
+      case 'registration':
+        return renderRegistration();
       default:
         return null;
     }
@@ -1339,6 +1387,9 @@ ogr3"
           </button>
           <button className={activeTab === 'support' ? 'active' : ''} onClick={() => setActiveTab('support')}>
             Destek Geçmişi
+          </button>
+          <button className={activeTab === 'registration' ? 'active' : ''} onClick={() => { setActiveTab('registration'); fetchRegistrationRequests().then(setRegRequests).catch(() => {}); }}>
+            Kayıt Talepleri
           </button>
         </div>
         {loading ? <LoadingOverlay subtle message="Veriler güncelleniyor..." /> : renderActiveTab()}

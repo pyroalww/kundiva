@@ -93,6 +93,10 @@ export const LoginPage: React.FC = () => {
           {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
         </button>
       </form>
+
+      <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+        Hesabınız yok mu? <a href="/register" style={{ color: 'var(--primary)', fontWeight: 500 }}>Kayıt Talebi Gönderin</a>
+      </p>
     </section>
   );
 };
