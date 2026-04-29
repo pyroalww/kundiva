@@ -7,7 +7,7 @@ export const configureClientAuth = (token: string | null) => {
 };
 
 export const apiClient = axios.create({
-  baseURL: '/api'
+  baseURL: 'https://kundiva-backend.onrender.com/api'
 });
 
 apiClient.interceptors.request.use((config) => {
