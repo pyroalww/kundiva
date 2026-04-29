@@ -1,0 +1,294 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String            @id @default(cuid())
+  email                  String            @unique
+  passwordHash           String
+  firstName              String
+  lastName               String
+  studentNumber          String?
+  subjects               String?
+  educationLevels        String?
+  role                   String            @default("STUDENT")
+  username               String?           @unique
+  profileCompleted       Boolean           @default(false)
+  aiCredits              Int               @default(3)
+  totalPoints            Int               @default(0)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  isBanned               Boolean           @default(false)
+  shadowBanned           Boolean           @default(false)
+  banReason              String?
+  banExpiresAt           DateTime?
+  lastSeenAt             DateTime?
+  lastSeenIp             String?
+  lastSeenUserAgent      String?
+  answers                Answer[]
+  bannedIpsCreated       BannedIp[]        @relation("BannedIpCreatedBy")
+  comments               Comment[]
+  friendRequestsReceived Friendship[]      @relation("FriendAddressee")
+  friendRequestsSent     Friendship[]      @relation("FriendRequester")
+  messagesReceived       Message[]         @relation("ReceivedMessages")
+  messagesSent           Message[]         @relation("SentMessages")
+  assignedQuestions      Question[]        @relation("AssignedTeacher")
+  questions              Question[]        @relation("StudentQuestions")
+  solutionVotes          SolutionVote[]
+  solutions              StudentSolution[]
+  teacherQueue           TeacherQueue[]
+  auditLogs              UserAuditLog[]
+}
+
+model Question {
+  id                String               @id @default(cuid())
+  studentId         String
+  firstName         String
+  lastName          String
+  studentNumber     String
+  course            String
+  subjectArea       String
+  subjectName       String
+  category          String               @default("GENEL")
+  educationLevel    String
+  title             String
+  description       String
+  solverType        String
+  status            String               @default("PENDING")
+  ocrText           String?
+  aiEthicsFlag      Boolean?
+  useKundivaAi      Boolean              @default(false)
+  assignedTeacherId String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  answers           Answer[]
+  assignedTeacher   User?                @relation("AssignedTeacher", fields: [assignedTeacherId], references: [id])
+  student           User                 @relation("StudentQuestions", fields: [studentId], references: [id])
+  attachments       QuestionAttachment[]
+  solutions         StudentSolution[]
+  teacherQueue      TeacherQueue[]
+
+  @@index([solverType, status])
+  @@index([assignedTeacherId])
+  @@index([title])
+}
+
+model QuestionAttachment {
+  id           String   @id @default(cuid())
+  questionId   String
+  type         String
+  originalName String
+  mimeType     String
+  storagePath  String
+  fileSize     Int
+  durationMs   Int?
+  createdAt    DateTime @default(now())
+  question     Question @relation(fields: [questionId], references: [id])
+
+  @@index([questionId])
+}
+
+model Answer {
+  id           String             @id @default(cuid())
+  questionId   String
+  authorId     String?
+  source       String
+  content      String
+  followUpOfId String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  followUpOf   Answer?            @relation("FollowUps", fields: [followUpOfId], references: [id])
+  followUps    Answer[]           @relation("FollowUps")
+  author       User?              @relation(fields: [authorId], references: [id])
+  question     Question           @relation(fields: [questionId], references: [id])
+  attachments  AnswerAttachment[]
+  comments     Comment[]
+
+  @@index([questionId])
+}
+
+model AnswerAttachment {
+  id           String   @id @default(cuid())
+  answerId     String
+  type         String
+  originalName String
+  mimeType     String
+  storagePath  String
+  fileSize     Int
+  durationMs   Int?
+  createdAt    DateTime @default(now())
+  answer       Answer   @relation(fields: [answerId], references: [id])
+
+  @@index([answerId])
+}
+
+model TeacherQueue {
+  id         String   @id @default(cuid())
+  teacherId  String
+  questionId String
+  createdAt  DateTime @default(now())
+  question   Question @relation(fields: [questionId], references: [id])
+  teacher    User     @relation(fields: [teacherId], references: [id])
+
+  @@unique([teacherId, questionId])
+  @@index([questionId])
+}
+
+model Comment {
+  id              String    @id @default(cuid())
+  answerId        String
+  authorId        String
+  content         String
+  parentCommentId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  parent          Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         Comment[] @relation("CommentReplies")
+  author          User      @relation(fields: [authorId], references: [id])
+  answer          Answer    @relation(fields: [answerId], references: [id])
+
+  @@index([answerId])
+  @@index([authorId])
+}
+
+model Friendship {
+  id          String   @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  addressee   User     @relation("FriendAddressee", fields: [addresseeId], references: [id])
+  requester   User     @relation("FriendRequester", fields: [requesterId], references: [id])
+
+  @@unique([requesterId, addresseeId])
+  @@index([status])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String
+  createdAt  DateTime @default(now())
+  isSpam     Boolean? @default(false)
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+}
+
+model UsageEvent {
+  id        String   @id @default(cuid())
+  eventType String
+  context   String?
+  createdAt DateTime @default(now())
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  provider   String
+  key        String
+  priority   Int       @default(0)
+  isActive   Boolean   @default(true)
+  lastUsedAt DateTime?
+  failCount  Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+
+  @@unique([provider, priority])
+  @@index([provider, isActive])
+}
+
+model AdminSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id        String           @id @default(cuid())
+  userId    String?
+  email     String?
+  status    String           @default("OPEN")
+  subject   String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @default(now())
+  messages  SupportMessage[]
+
+  @@index([status])
+}
+
+model SupportMessage {
+  id         String        @id @default(cuid())
+  ticketId   String
+  senderType String
+  content    String
+  createdAt  DateTime      @default(now())
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id])
+}
+
+model UserAuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  ipAddress  String?
+  userAgent  String?
+  method     String?
+  path       String
+  statusCode Int?
+  metadata   String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+model BannedIp {
+  id          String    @id @default(cuid())
+  ipAddress   String    @unique
+  reason      String?
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+  createdById String?
+  createdBy   User?     @relation("BannedIpCreatedBy", fields: [createdById], references: [id])
+}
+
+model StudentSolution {
+  id         String         @id @default(cuid())
+  questionId String
+  authorId   String
+  content    String
+  isCorrect  Boolean?
+  points     Int            @default(0)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  votes      SolutionVote[]
+  author     User           @relation(fields: [authorId], references: [id])
+  question   Question       @relation(fields: [questionId], references: [id])
+
+  @@index([questionId])
+  @@index([authorId])
+  @@index([isCorrect])
+  @@index([createdAt])
+}
+
+model SolutionVote {
+  id         String          @id @default(cuid())
+  solutionId String
+  voterId    String
+  value      Int             @default(1)
+  createdAt  DateTime        @default(now())
+  voter      User            @relation(fields: [voterId], references: [id])
+  solution   StudentSolution @relation(fields: [solutionId], references: [id])
+
+  @@unique([solutionId, voterId])
+  @@index([solutionId])
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@kundiva/shared",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5",
+    "rimraf": "^5.0.5"
+  }
+}

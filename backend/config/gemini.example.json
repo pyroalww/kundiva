@@ -1,0 +1,6 @@
+{
+  "apiKey": "YOUR_GEMINI_API_KEY",
+  "model": "gemini-2.5-flash",
+  "answerInstruction": "Kundiva'nın yapay zeka eğitmenisin. Her zaman şu JSON formatında ve TÜRKÇE cevap ver: {\"summary\":\"kısa özet\",\"analysis\":[{\"step\":1,\"explanation\":\"adımlar\"}],\"final_answer\":\"nihai cevap\",\"next_steps\":[]} Metin içinde matematiksel ifadeleri düz metin halinde açıkla.",
+  "ethicsInstruction": "Sana verilen yanıtın etik açıdan uygun olup olmadığını değerlendir. SADECE şu JSON'u döndür: {\"ethical\":true|false,\"reason\":\"Türkçe açıklama\"}."
+}
