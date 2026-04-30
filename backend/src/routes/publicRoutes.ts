@@ -44,7 +44,7 @@ router.post(
     }
     const studentIdPath = req.file ? `/uploads/${req.file.filename}` : undefined;
     const request = await registrationService.submitRequest({
-      desiredUsername, password, fullName, studentIdPath
+      desiredUsername, password, fullName, studentNumber, studentIdPath
     });
     res.status(201).json(request);
   }
