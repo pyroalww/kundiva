@@ -9,6 +9,7 @@ export const registrationService = {
     desiredUsername: string;
     password: string;
     fullName: string;
+    studentNumber: string;
     studentIdPath?: string;
   }) => {
     const username = params.desiredUsername.toLowerCase().trim();
@@ -33,6 +34,7 @@ export const registrationService = {
         desiredUsername: username,
         password: passwordHash,
         fullName: params.fullName.trim(),
+        studentNumber: params.studentNumber.trim(),
         studentIdPath: params.studentIdPath ?? null
       }
     });
@@ -63,6 +65,7 @@ export const registrationService = {
         passwordHash: request.password,
         firstName,
         lastName,
+        studentNumber: request.studentNumber ?? '',
         role: 'STUDENT',
         profileCompleted: false,
         aiCredits: 3

@@ -52,9 +52,11 @@ export const commentService = {
       throw new ApiError(400, 'Yorum metni boş olamaz.');
     }
 
-    const moderation = await aiService.moderateContent(content);
-    if (!moderation.allowed) {
-      throw new ApiError(400, moderation.reason ?? 'Yorum içerik politikalarına aykırı.');
+    // Ethics check
+    const { moderationService } = await import('./moderationService');
+    const isFlagged = await moderationService.shouldFlag(content);
+    if (isFlagged) {
+      throw new ApiError(400, 'Yorum içerik politikalarına aykırı veya onay gerektiriyor.');
     }
 
     let parentCommentId: string | undefined;

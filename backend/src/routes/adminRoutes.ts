@@ -142,6 +142,11 @@ router.patch('/questions/:questionId/solutions/:solutionId', async (req: Request
       where: { id: solution.authorId },
       data: { totalPoints: { increment: 10 }, aiCredits: { increment: 1 } }
     });
+    
+    await prisma.question.update({
+      where: { id: solution.questionId },
+      data: { status: 'ANSWERED' }
+    });
   }
 
   res.json(solution);

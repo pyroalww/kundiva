@@ -144,7 +144,7 @@ nav button,
 
 input.input,
 textarea.input,
-select.select {
+select.input {
   width: 100%;
   padding: 0.85rem 1rem;
   border-radius: var(--radius-sm);
@@ -156,7 +156,7 @@ select.select {
 
 input.input:focus,
 textarea.input:focus,
-select.select:focus {
+select.input:focus {
   outline: none;
   border-color: rgba(37, 99, 235, 0.55);
   background: #fff;

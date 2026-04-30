@@ -10,7 +10,9 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   ACTIVE_PRACTICE_MODEL: 'gemini-2.0-flash',
   ACTIVE_SUPPORT_MODEL: 'gemini-flash-lite-latest',
   ACTIVE_ETHICS_MODEL: 'gemini-2.0-flash-lite',
-  ACTIVE_MODERATION_MODEL: 'gemini-flash-lite-latest'
+  ACTIVE_MODERATION_MODEL: 'gemini-flash-lite-latest',
+  AUTO_PUBLISH_MODE: 'MANUAL',
+  LIVE_SUPPORT_ENABLED: 'OFF'
 };
 
 export const settingsService = {

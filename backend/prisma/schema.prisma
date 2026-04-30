@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -302,6 +302,7 @@ model RegistrationRequest {
   desiredUsername String
   password       String
   fullName       String
+  studentNumber  String?
   studentIdPath  String?
   status         String   @default("PENDING")
   rejectionNote  String?

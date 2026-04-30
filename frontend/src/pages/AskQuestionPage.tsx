@@ -23,6 +23,7 @@ const CATEGORIES = [
 ];
 
 type FormValues = {
+  title: string;
   firstName: string;
   lastName: string;
   studentNumber: string;
@@ -75,6 +76,7 @@ export const AskQuestionPage: React.FC = () => {
       setError(null);
       const question = await createQuestion({
         payload: {
+          title: values.title.trim(),
           firstName: values.firstName.trim(),
           lastName: values.lastName.trim(),
           studentNumber: values.studentNumber.trim(),
@@ -179,7 +181,20 @@ export const AskQuestionPage: React.FC = () => {
     <div className="fade-in-up">
       <h2>Sorunuz</h2>
       <div className="form-group">
-        <label htmlFor="questionText">Soru metnini yazın</label>
+        <label htmlFor="title">Soru Başlığı</label>
+        <input 
+          id="title" 
+          className="input" 
+          required 
+          placeholder="Örn: Newton'un İkinci Yasası Hakkında Sürtünme Problemi" 
+          {...register('title', { required: true })} 
+        />
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+          Lütfen sorunuzun ne hakkında olduğunu kısaca özetleyin. "Acil yardım", "Bakar mısınız" gibi başlıklar kullanmayın.
+        </p>
+      </div>
+      <div className="form-group">
+        <label htmlFor="questionText">Soru Metni</label>
         <textarea
           id="questionText"
           className="input"

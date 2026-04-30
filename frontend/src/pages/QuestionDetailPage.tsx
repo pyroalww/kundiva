@@ -71,7 +71,7 @@ const renderAIAnswer = (parsed: Record<string, unknown>) => {
         return (
           <div key={key} style={{ marginBottom: '1rem' }}>
             <h4 style={{ color: 'var(--primary)', marginBottom: '0.3rem' }}>{label}</h4>
-            <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>{content}</p>
+            <MarkdownRenderer content={content} />
           </div>
         );
       })}

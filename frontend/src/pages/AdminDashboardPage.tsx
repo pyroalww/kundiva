@@ -686,7 +686,30 @@ ogr3"
               </td>
               <td>{question.status}</td>
               <td>{question.answers?.length ?? 0}</td>
-              <td>
+              <td style={{ display: 'flex', gap: '0.5rem' }}>
+                <a href={`/questions/${question.id}`} className="button secondary" target="_blank" rel="noreferrer">
+                  Görüntüle
+                </a>
+                {question.status === 'FLAGGED' && (
+                  <button 
+                    className="button" 
+                    style={{ background: '#10b981', color: 'white' }}
+                    type="button" 
+                    onClick={async () => {
+                      if (window.confirm('Bu içeriği onaylamak istediğinize emin misiniz?')) {
+                        try {
+                          const { updateAdminQuestion } = await import('../api/admin');
+                          await updateAdminQuestion(question.id, { status: 'PENDING' });
+                          await loadData();
+                        } catch (err) {
+                          alert('Onaylama sırasında bir hata oluştu.');
+                        }
+                      }
+                    }}
+                  >
+                    Onayla
+                  </button>
+                )}
                 <button className="button secondary" type="button" onClick={() => handleDeleteQuestion(question.id)}>
                   Sil
                 </button>
@@ -839,20 +862,26 @@ ogr3"
           </select>
         </div>
         <div className="form-group">
-          <label>Aktif AI modeli</label>
-          <input
-            type="text"
-            value={settings.ACTIVE_AI_MODEL ?? ''}
-            onChange={(event) => handleSettingChange('ACTIVE_AI_MODEL', event.target.value)}
-          />
+          <label>Oto-Yayın Modu</label>
+          <select
+            value={settings.AUTO_PUBLISH_MODE ?? 'MANUAL'}
+            onChange={(event) => handleSettingChange('AUTO_PUBLISH_MODE', event.target.value)}
+          >
+            <option value="MANUAL">Tam Kontrol (Yapay Zeka Kapalı, Manuel Onay)</option>
+            <option value="LOCAL_AI">Yarı Otomatik (Yerel Filtre)</option>
+            <option value="GEMINI_AI">Akıllı Yarı Otomatik (Gemini AI Filtresi)</option>
+            <option value="AUTO">Kapalı (Doğrudan Yayınla)</option>
+          </select>
         </div>
         <div className="form-group">
-          <label>Uygulama testi modeli</label>
-          <input
-            type="text"
-            value={settings.ACTIVE_PRACTICE_MODEL ?? ''}
-            onChange={(event) => handleSettingChange('ACTIVE_PRACTICE_MODEL', event.target.value)}
-          />
+          <label>Canlı Destek</label>
+          <select
+            value={settings.LIVE_SUPPORT_ENABLED ?? 'OFF'}
+            onChange={(event) => handleSettingChange('LIVE_SUPPORT_ENABLED', event.target.value)}
+          >
+            <option value="ON">Açık</option>
+            <option value="OFF">Kapalı</option>
+          </select>
         </div>
       </div>
       <div className="settings-grid-inline">

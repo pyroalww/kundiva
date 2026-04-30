@@ -324,7 +324,11 @@ export const questionService = {
 
     // solverType is always TEACHER now, AI is done via useKundivaAi flag in background
     const solverType = SOLVER_TYPE.TEACHER;
-    const baseStatus = QUESTION_STATUS.PENDING;
+
+    // Check if content needs to be flagged based on AUTO_PUBLISH_MODE
+    const { moderationService } = await import('./moderationService');
+    const isFlagged = await moderationService.shouldFlag(`${title}\n${questionText}`);
+    const baseStatus = isFlagged ? QUESTION_STATUS.FLAGGED : QUESTION_STATUS.PENDING;
 
     const created = await prisma.$transaction(async (tx) => {
       const question = await tx.question.create({
@@ -794,10 +798,11 @@ export const questionService = {
       throw new ApiError(404, 'Soru bulunamadı.');
     }
 
-    // NSFW/Ethics check on solution content
-    const moderation = await aiService.moderateContent(params.content);
-    if (!moderation.allowed) {
-      throw new ApiError(400, moderation.reason ?? 'Çözüm içeriği uygun değil.');
+    // Ethics check
+    const { moderationService } = await import('./moderationService');
+    const isFlagged = await moderationService.shouldFlag(params.content);
+    if (isFlagged) {
+      throw new ApiError(400, 'Çözüm içeriği uygun değil veya onay gerektiriyor.');
     }
 
     const solution = await prisma.studentSolution.create({
@@ -871,6 +876,11 @@ export const questionService = {
             totalPoints: { increment: pointsToAward },
             aiCredits: { increment: creditsToAward }
           }
+        });
+        
+        await tx.question.update({
+          where: { id: solution.questionId },
+          data: { status: QUESTION_STATUS.ANSWERED }
         });
       }
 

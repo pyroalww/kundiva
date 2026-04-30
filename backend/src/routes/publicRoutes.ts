@@ -4,7 +4,7 @@ import { questionController } from '../controllers/questionController';
 import { prisma } from '../utils/prisma';
 import { registrationService } from '../services/registrationService';
 import { applyRateLimit } from '../middleware/rateLimiter';
-import { questionUpload } from '../middleware/upload';
+import { questionUpload, optimizeImages } from '../middleware/upload';
 
 const router = Router();
 
@@ -35,10 +35,11 @@ router.post(
   '/register-request',
   applyRateLimit({ windowMs: 60_000, max: 3, message: 'Çok sık kayıt talebi gönderiyorsunuz.' }),
   questionUpload.single('studentId'),
+  optimizeImages,
   async (req: Request, res: Response) => {
-    const { desiredUsername, password, fullName } = req.body;
-    if (!desiredUsername || !password || !fullName) {
-      res.status(400).json({ message: 'Tüm alanlar zorunludur.' });
+    const { desiredUsername, password, fullName, studentNumber } = req.body;
+    if (!desiredUsername || !password || !fullName || !studentNumber) {
+      res.status(400).json({ message: 'Tüm alanlar zorunludur (Kullanıcı Adı, Şifre, Ad Soyad, Öğrenci No).' });
       return;
     }
     const studentIdPath = req.file ? `/uploads/${req.file.filename}` : undefined;

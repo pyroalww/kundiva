@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { questionController } from '../controllers/questionController';
 import { authenticate, requireRole } from '../middleware/auth';
 import { applyRateLimit } from '../middleware/rateLimiter';
-import { attachmentUpload, questionUpload } from '../middleware/upload';
+import { attachmentUpload, questionUpload, optimizeImages } from '../middleware/upload';
 
 const router = Router();
 
@@ -13,6 +13,7 @@ router.post(
   requireRole(['STUDENT']),
   applyRateLimit({ windowMs: 5 * 60_000, max: 5, message: 'Soru gönderim limitine ulaştınız. Lütfen daha sonra tekrar deneyin.' }),
   questionUpload.single('questionImage'),
+  optimizeImages,
   questionController.createQuestion
 );
 
@@ -39,6 +40,7 @@ router.post(
   authenticate,
   requireRole(['STUDENT']),
   attachmentUpload.array('attachments', 5),
+  optimizeImages,
   applyRateLimit({ windowMs: 60_000, max: 5, message: 'Çok hızlı takip sorusu gönderiyorsunuz.' }),
   questionController.addFollowUp
 );

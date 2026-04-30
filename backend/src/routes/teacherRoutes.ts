@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import { questionController } from '../controllers/questionController';
 import { authenticate, requireRole } from '../middleware/auth';
-import { attachmentUpload } from '../middleware/upload';
+import { attachmentUpload, optimizeImages } from '../middleware/upload';
 
 const router = Router();
 
@@ -18,6 +18,7 @@ router.post(
   authenticate,
   requireRole(['TEACHER']),
   attachmentUpload.array('attachments', 5),
+  optimizeImages,
   questionController.submitTeacherAnswer
 );
 
