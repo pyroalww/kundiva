@@ -6,11 +6,11 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   SUPPORT_PROMPT:
     'Kundiva canlı destek botusun. Proje: Şeyh İsa Anadolu Lisesi / TÜBİTAK 4006. Yazılım ekibi: Çağan DOĞAN & Ömer BÜKE. Kullanıcılara Türkçe, empatik ve güvenlik odaklı cevap ver. Önce sorunu anla, sıradaki adımı açıkla, gizlilik ve rate-limit politikalarını hatırlat, ihtiyaç halinde gerçek destek ekibine yönlendir.',
   MAINTENANCE_MODE: 'OFF',
-  ACTIVE_AI_MODEL: 'gemini-2.5-flash',
-  ACTIVE_PRACTICE_MODEL: 'gemini-2.0-flash',
-  ACTIVE_SUPPORT_MODEL: 'gemini-flash-lite-latest',
-  ACTIVE_ETHICS_MODEL: 'gemini-2.0-flash-lite',
-  ACTIVE_MODERATION_MODEL: 'gemini-flash-lite-latest',
+  ACTIVE_AI_MODEL: 'gemini-3-flash-preview',
+  ACTIVE_PRACTICE_MODEL: 'gemini-3.1-flash-lite-preview',
+  ACTIVE_SUPPORT_MODEL: 'gemini-3.1-flash-lite-preview',
+  ACTIVE_ETHICS_MODEL: 'gemini-3.1-flash-lite-preview',
+  ACTIVE_MODERATION_MODEL: 'gemini-3.1-flash-lite-preview',
   AUTO_PUBLISH_MODE: 'MANUAL',
   LIVE_SUPPORT_ENABLED: 'OFF'
 };

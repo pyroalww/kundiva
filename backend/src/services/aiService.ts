@@ -2,11 +2,11 @@ import type { Part } from '@google/generative-ai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { AnswerSource, SolverType } from '@kundiva/shared';
 
-import { buildSystemInstruction,getGeminiFileConfig } from '../config/gemini';
+import { buildSystemInstruction, getGeminiFileConfig } from '../config/gemini';
 import { logger } from '../utils/logger';
 import { apiKeyService } from './apiKeyService';
 import { settingsService } from './settingsService';
-import { type UsageEventType,usageService } from './usageService';
+import { type UsageEventType, usageService } from './usageService';
 
 export type AIAnswerPayload = {
   title: string;
@@ -110,7 +110,7 @@ export const aiService = {
   }> => {
     const config = getGeminiFileConfig();
     const systemInstruction = (await settingsService.get('SYSTEM_PROMPT')) ?? config.answerInstruction ?? '';
-    const modelName = (await settingsService.get('ACTIVE_AI_MODEL')) ?? config.model ?? 'gemini-2.5-flash';
+    const modelName = (await settingsService.get('ACTIVE_AI_MODEL')) ?? config.model ?? 'gemini-3-flash-preview';
 
     const parts = toPrompt(payload);
     const raw = await executeWithModel(modelName, systemInstruction, parts, {
@@ -168,7 +168,7 @@ export const aiService = {
   },
   generateTitle: async (questionText: string, subjectName: string): Promise<string> => {
     try {
-      const modelName = (await settingsService.get('ACTIVE_AI_MODEL')) ?? 'gemini-2.5-flash';
+      const modelName = (await settingsService.get('ACTIVE_AI_MODEL')) ?? 'gemini-3.1-flash-lite-preview';
       const raw = await executeWithModel(
         modelName,
         'Kısa ve açıklayıcı bir soru başlığı üret. Sadece JSON: {"title":"..."} döndür.',
@@ -205,7 +205,7 @@ export const aiService = {
     const config = getGeminiFileConfig();
     const modelName = (await settingsService.get('ACTIVE_PRACTICE_MODEL')) ??
       config.model ??
-      'gemini-2.5-flash';
+      'gemini-3-flash-preview';
 
     const context: string[] = [
       `Özgün soru başlığı: ${payload.title}`,

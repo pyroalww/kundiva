@@ -43,7 +43,7 @@ export const getGeminiFileConfig = (): GeminiFileConfig => {
   cachedConfig = {
     apiKey: (primary.apiKey ?? process.env.GEMINI_API_KEY ?? fallback.apiKey)?.trim(),
     imagenApiKey: (primary.imagenApiKey ?? process.env.IMAGEN_API_KEY ?? fallback.imagenApiKey)?.trim(),
-    model: primary.model ?? fallback.model ?? 'gemini-2.5-flash',
+    model: primary.model ?? fallback.model ?? 'gemini-3-flash-preview',
     answerInstruction:
       primary.answerInstruction ??
       fallback.answerInstruction ??
