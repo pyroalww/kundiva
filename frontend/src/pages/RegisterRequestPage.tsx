@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { submitRegistrationRequest } from '../api/profile';
 import { useAuth } from '../hooks/useAuth';
 import { extractErrorMessage } from '../utils/errorMessage';
+import { ResponsibilityAgreement } from '../components/ResponsibilityAgreement';
 
 export const RegisterRequestPage: React.FC = () => {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ export const RegisterRequestPage: React.FC = () => {
   const [desiredUsername, setDesiredUsername] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -211,9 +213,12 @@ export const RegisterRequestPage: React.FC = () => {
                 value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)}
               />
             </div>
+            
+            <ResponsibilityAgreement checked={agreementAccepted} onChange={setAgreementAccepted} />
+
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
               <button className="button ghost" type="button" onClick={handlePrev}>← Geri</button>
-              <button className="button" type="submit" disabled={loading} style={{ flex: 1 }}>
+              <button className="button" type="submit" disabled={loading || !agreementAccepted} style={{ flex: 1 }}>
                 {loading ? 'Gönderiliyor...' : 'Kayıt Talebi Gönder'}
               </button>
             </div>

@@ -231,7 +231,7 @@ export const aiService = {
 
     const raw = await executeWithModel(
       modelName,
-      'Öğrenci için çoktan seçmeli tek doğru cevaplı yeni bir tekrar sorusu üret. Yanıtı sadece JSON dön.',
+      'Öğrenci için çoktan seçmeli tek doğru cevaplı benzer yeni bir tekrar sorusu üret. Yanıtı her zaman SADECE şu JSON formatında dön: {"prompt": "soru metni", "options": ["A seçeneği", "B seçeneği", "C seçeneği", "D seçeneği", "E seçeneği"], "correctIndex": 0, "explanation": "doğru cevabın açıklaması"}',
       [
         {
           text: `${context.join('\n\n')}\nYukarıdaki bilgilere göre yeni bir soru üret.`

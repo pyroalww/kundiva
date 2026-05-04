@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { createQuestion } from '../api/questions';
 import { useAuth } from '../hooks/useAuth';
 import { extractErrorMessage } from '../utils/errorMessage';
+import { ResponsibilityAgreement } from '../components/ResponsibilityAgreement';
 
 const COURSES = [
   'Matematik', 'Fizik', 'Kimya', 'Biyoloji', 'Türkçe', 'Edebiyat',
@@ -53,6 +54,7 @@ export const AskQuestionPage: React.FC = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
 
   const useKundivaAi = watch('useKundivaAi');
 
@@ -253,11 +255,13 @@ export const AskQuestionPage: React.FC = () => {
         </label>
       </div>
 
+      <ResponsibilityAgreement checked={agreementAccepted} onChange={setAgreementAccepted} />
+
       <div style={{ display: 'flex', gap: '0.75rem' }}>
         <button className="button ghost" type="button" onClick={prevStep}>
           ← Geri
         </button>
-        <button className="button" type="submit" disabled={loading}>
+        <button className="button" type="submit" disabled={loading || !agreementAccepted}>
           {loading ? 'Gönderiliyor...' : 'Soruyu gönder'}
         </button>
       </div>

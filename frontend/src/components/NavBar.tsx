@@ -37,7 +37,7 @@ export const NavBar: React.FC = () => {
       <div className="nav-inner">
         {/* Brand */}
         <Link to="/" className="brand">
-          <span className="brand-icon">K</span>
+          <img src="/logo.png" alt="Kundiva Logo" className="brand-icon-img" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
           <div className="brand-text">
             <span className="brand-mark">Kundiva</span>
             <span className="brand-tagline">TÜBİTAK 4006</span>
