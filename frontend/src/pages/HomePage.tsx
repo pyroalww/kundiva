@@ -5,6 +5,7 @@ import { apiClient } from '../api/client';
 import { fetchPublicQuestions } from '../api/questions';
 import { LoadingOverlay } from '../components/LoadingOverlay';
 import { QuestionCard } from '../components/QuestionCard';
+import { usePageTitle } from '../hooks/usePageTitle';
 import type { QuestionFilters, QuestionListItem } from '../types';
 import { extractErrorMessage } from '../utils/errorMessage';
 
@@ -48,6 +49,7 @@ const PROCESS_STEPS = [
 ];
 
 export const HomePage: React.FC = () => {
+  usePageTitle('Anasayfa');
   const [questions, setQuestions] = useState<QuestionListItem[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);

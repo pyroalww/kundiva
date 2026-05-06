@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { createQuestion } from '../api/questions';
 import { useAuth } from '../hooks/useAuth';
+import { usePageTitle } from '../hooks/usePageTitle';
 import { extractErrorMessage } from '../utils/errorMessage';
 import { ResponsibilityAgreement } from '../components/ResponsibilityAgreement';
 
@@ -38,6 +39,7 @@ type FormValues = {
 };
 
 export const AskQuestionPage: React.FC = () => {
+  usePageTitle('Soru Sor');
   const { user } = useAuth();
   const nav = useNavigate();
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({

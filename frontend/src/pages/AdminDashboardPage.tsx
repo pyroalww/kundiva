@@ -34,6 +34,7 @@ import {
 } from '../api/admin';
 import { extractErrorMessage } from '../utils/errorMessage';
 import { LoadingOverlay } from '../components/LoadingOverlay';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const ROLE_OPTIONS = [
   { value: 'STUDENT', label: 'Öğrenci' },
@@ -42,6 +43,7 @@ const ROLE_OPTIONS = [
 ];
 
 export const AdminDashboardPage: React.FC = () => {
+  usePageTitle('Yönetim Paneli');
   const [overview, setOverview] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);

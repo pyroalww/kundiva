@@ -3,9 +3,11 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 
 import { login } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
+import { usePageTitle } from '../hooks/usePageTitle';
 import { extractErrorMessage } from '../utils/errorMessage';
 
 export const LoginPage: React.FC = () => {
+  usePageTitle('Giriş Yap');
   const { login: authLogin, user } = useAuth();
   const nav = useNavigate();
   const location = useLocation();

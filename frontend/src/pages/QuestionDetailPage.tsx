@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 
 import {
   fetchQuestionDetail,
+  fetchQuestionLibrary,
   generatePracticeQuestion,
   postComment,
   submitFollowUp,
@@ -16,8 +17,10 @@ import {
 } from '../api/admin';
 import { LoadingOverlay } from '../components/LoadingOverlay';
 import { MarkdownRenderer } from '../components/MarkdownRenderer';
+import { ImageLightbox } from '../components/ImageLightbox';
 import { useAuth } from '../hooks/useAuth';
-import type { Comment, MediaAttachment, QuestionDetail, StudentSolution } from '../types';
+import { usePageTitle } from '../hooks/usePageTitle';
+import type { Comment, MediaAttachment, QuestionDetail, QuestionListItem, StudentSolution } from '../types';
 import { extractErrorMessage } from '../utils/errorMessage';
 import type { PracticeQuestion } from '@kundiva/shared';
 
@@ -85,6 +88,9 @@ export const QuestionDetailPage: React.FC = () => {
   const [question, setQuestion] = useState<QuestionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [relatedQuestions, setRelatedQuestions] = useState<QuestionListItem[]>([]);
+
+  usePageTitle(question?.title ?? 'Soru Detayı');
 
   const [followUpText, setFollowUpText] = useState('');
   const [followUpSolver, setFollowUpSolver] = useState<'AI' | 'TEACHER'>('TEACHER');
@@ -133,6 +139,18 @@ export const QuestionDetailPage: React.FC = () => {
   useEffect(() => {
     void loadQuestion();
   }, [loadQuestion]);
+
+  // Load related questions based on same course/subject
+  useEffect(() => {
+    if (!question) return;
+    fetchQuestionLibrary({
+      query: question.subjectName,
+      take: 5,
+      status: 'ANSWERED'
+    }).then((data) => {
+      setRelatedQuestions(data.items.filter(q => q.id !== question.id).slice(0, 4));
+    }).catch(() => {});
+  }, [question?.id, question?.subjectName]);
 
   // Auto-refresh for AI processing
   useEffect(() => {
@@ -246,7 +264,7 @@ export const QuestionDetailPage: React.FC = () => {
         {attachments.map((att) => (
           <div key={att.id} className="attachment-card">
             {att.type === 'IMAGE' ? (
-              <img src={att.storagePath} alt={att.originalName} loading="lazy" />
+              <ImageLightbox src={att.storagePath} alt={att.originalName} />
             ) : (
               <video src={att.storagePath} controls preload="metadata" />
             )}
@@ -380,7 +398,7 @@ export const QuestionDetailPage: React.FC = () => {
         {question.attachments && question.attachments.length > 0 && (
           <div style={{ marginTop: '1rem' }}>
             {question.attachments.map((att) => (
-              <img key={att.id} src={att.storagePath} alt={att.originalName} style={{ maxWidth: '100%', borderRadius: '12px' }} />
+              <ImageLightbox key={att.id} src={att.storagePath} alt={att.originalName} style={{ maxWidth: '100%', borderRadius: '12px' }} />
             ))}
           </div>
         )}
@@ -687,9 +705,32 @@ export const QuestionDetailPage: React.FC = () => {
       )
       }
 
+      {/* Related Questions */}
+      {relatedQuestions.length > 0 && (
+        <div className="card fade-in-up related-questions" style={{ marginTop: '1.5rem' }}>
+          <h3>🔗 Benzer Sorular</h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+            Aynı konudaki diğer sorulara göz atın.
+          </p>
+          {relatedQuestions.map((rq) => (
+            <Link key={rq.id} to={`/questions/${rq.id}`} className="related-question-card">
+              <div style={{ flex: 1 }}>
+                <strong style={{ fontSize: '0.9rem' }}>{rq.title}</strong>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                  {rq.course} • {rq.subjectName}
+                </div>
+              </div>
+              <span className={`status-chip ${rq.status ?? 'PENDING'}`} style={{ fontSize: '0.7rem' }}>
+                {STATUS_LABELS[rq.status ?? 'PENDING']}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+
       <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
         <Link to="/library" className="button ghost">← Kütüphaneye dön</Link>
       </div>
-    </section >
+    </section>
   );
 };

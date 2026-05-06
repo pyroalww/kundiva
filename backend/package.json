@@ -17,6 +17,7 @@
     "@google/generative-ai": "^0.8.0",
     "@kundiva/shared": "workspace:*",
     "@prisma/client": "^5.16.0",
+    "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -29,7 +30,8 @@
     "nanoid": "^5.0.7",
     "p-queue": "^8.1.1",
     "sharp": "^0.33.5",
-    "tesseract.js": "^5.1.0"
+    "tesseract.js": "^5.1.0",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -40,6 +42,7 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^20.12.7",
     "@types/tesseract.js": "^2.0.0",
+    "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^7.6.0",
     "@typescript-eslint/parser": "^7.6.0",
     "eslint": "^8.57.0",

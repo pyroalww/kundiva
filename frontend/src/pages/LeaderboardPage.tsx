@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { fetchLeaderboard } from '../api/questions';
 import { LoadingOverlay } from '../components/LoadingOverlay';
+import { usePageTitle } from '../hooks/usePageTitle';
 import type { LeaderboardEntry } from '../types';
 import { extractErrorMessage } from '../utils/errorMessage';
 
@@ -14,6 +15,7 @@ const PERIODS = [
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 export const LeaderboardPage: React.FC = () => {
+    usePageTitle('Liderlik Tablosu');
     const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);

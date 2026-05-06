@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { fetchQuestionLibrary } from '../api/questions';
 import { LoadingOverlay } from '../components/LoadingOverlay';
 import { useAuth } from '../hooks/useAuth';
+import { usePageTitle } from '../hooks/usePageTitle';
 import type { QuestionListItem } from '../types';
 import { extractErrorMessage } from '../utils/errorMessage';
 
@@ -21,13 +22,20 @@ const STATUS_FILTERS = [
     { key: 'ANSWERED', label: 'Çözüldü' }
 ];
 
+const COURSES = [
+    'Tümü', 'Matematik', 'Fizik', 'Kimya', 'Biyoloji', 'Türkçe', 'Edebiyat',
+    'Tarih', 'Coğrafya', 'İngilizce', 'Felsefe', 'Din Kültürü'
+];
+
 export const QuestionLibraryPage: React.FC = () => {
+    usePageTitle('Soru Kütüphanesi');
     const { user } = useAuth();
     const [questions, setQuestions] = useState<QuestionListItem[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(0);
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [courseFilter, setCourseFilter] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const pageSize = 20;
@@ -39,7 +47,8 @@ export const QuestionLibraryPage: React.FC = () => {
                 query: query || undefined,
                 skip: page * pageSize,
                 take: pageSize,
-                status: statusFilter || undefined
+                status: statusFilter || undefined,
+                filters: courseFilter ? { course: courseFilter } : undefined
             });
             setQuestions(data.items);
             setTotal(data.total);
@@ -49,7 +58,7 @@ export const QuestionLibraryPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [query, page, statusFilter]);
+    }, [query, page, statusFilter, courseFilter]);
 
     useEffect(() => {
         void load();
@@ -66,7 +75,7 @@ export const QuestionLibraryPage: React.FC = () => {
             </header>
 
             <div className="card fade-in-up" style={{ marginTop: '1.5rem' }}>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1rem' }}>
                     <input
                         className="input"
                         style={{ flex: 1, minWidth: '200px' }}
@@ -95,6 +104,26 @@ export const QuestionLibraryPage: React.FC = () => {
                         ))}
                     </div>
                 </div>
+
+                {/* Course filter pills */}
+                <div className="course-filter-pills">
+                    {COURSES.map((c) => {
+                        const isActive = c === 'Tümü' ? courseFilter === '' : courseFilter === c;
+                        return (
+                            <button
+                                key={c}
+                                type="button"
+                                className={`course-pill ${isActive ? 'active' : ''}`}
+                                onClick={() => {
+                                    setCourseFilter(c === 'Tümü' ? '' : c);
+                                    setPage(0);
+                                }}
+                            >
+                                {c}
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
             {loading && <LoadingOverlay subtle message="Yükleniyor..." />}
@@ -102,7 +131,13 @@ export const QuestionLibraryPage: React.FC = () => {
 
             {!loading && questions.length === 0 && (
                 <div className="card fade-in-up" style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>🔍</div>
                     <p>Henüz soru bulunamadı.</p>
+                    {courseFilter && (
+                        <button className="button ghost" style={{ marginTop: '0.75rem' }} onClick={() => setCourseFilter('')}>
+                            Filtreleri temizle
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -131,9 +166,9 @@ export const QuestionLibraryPage: React.FC = () => {
                                     )}
                                 </h3>
                                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                    <span>{q.subjectName}</span>
+                                    <span className="badge" style={{ background: 'rgba(37,99,235,0.08)', color: 'var(--accent)', fontWeight: 500 }}>{q.course}</span>
                                     <span>•</span>
-                                    <span>{q.course}</span>
+                                    <span>{q.subjectName}</span>
                                     <span>•</span>
                                     <span>{q.educationLevel}</span>
                                     {q.student && (

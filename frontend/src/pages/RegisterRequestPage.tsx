@@ -1,13 +1,18 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { submitRegistrationRequest } from '../api/profile';
 import { useAuth } from '../hooks/useAuth';
+import { usePageTitle } from '../hooks/usePageTitle';
 import { extractErrorMessage } from '../utils/errorMessage';
 import { ResponsibilityAgreement } from '../components/ResponsibilityAgreement';
 
+const STEP_LABELS = ['Kişisel Bilgi', 'Kimlik Doğrulama', 'Hesap Oluştur'];
+
 export const RegisterRequestPage: React.FC = () => {
-  const { user } = useAuth();
-  
+  const { user, login } = useAuth();
+  const navigate = useNavigate();
+  usePageTitle('Kayıt Talebi');
+
   const [step, setStep] = useState(1);
   const [fullName, setFullName] = useState('');
   const [studentNumber, setStudentNumber] = useState('');
@@ -17,7 +22,7 @@ export const RegisterRequestPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [agreementAccepted, setAgreementAccepted] = useState(false);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -93,13 +98,31 @@ export const RegisterRequestPage: React.FC = () => {
 
   if (success) {
     return (
-      <section className="card fade-in-up" style={{ maxWidth: 480, margin: '3rem auto', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
+      <section className="card fade-in-up" style={{ maxWidth: 520, margin: '3rem auto', textAlign: 'center' }}>
+        <div style={{
+          width: '80px', height: '80px', borderRadius: '50%',
+          background: 'linear-gradient(135deg, #10b981, #059669)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 1.5rem', fontSize: '2rem',
+          boxShadow: '0 12px 30px rgba(16,185,129,0.3)',
+          animation: 'fade-slide-up 0.5s ease'
+        }}>✅</div>
         <h2>Kayıt talebiniz alındı!</h2>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem', lineHeight: 1.7 }}>
-          Talebiniz yönetici tarafından incelenecektir. Onaylandıktan sonra belirlediğiniz kullanıcı adı ve şifre ile giriş yapabilirsiniz.
+          Talebiniz yönetici tarafından incelenecektir. Onaylandıktan sonra belirlediğiniz
+          <strong style={{ color: 'var(--accent)' }}> {desiredUsername} </strong>
+          kullanıcı adı ile giriş yapabilirsiniz.
         </p>
-        <a href="/login" className="button" style={{ marginTop: '1.5rem', display: 'inline-block' }}>
+        <div style={{
+          margin: '1.5rem auto', padding: '1rem', borderRadius: '12px',
+          background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.1)',
+          maxWidth: '300px'
+        }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+            📩 Onaylandığında bildirim alacaksınız.
+          </p>
+        </div>
+        <a href="/login" className="button" style={{ marginTop: '1rem', display: 'inline-flex' }}>
           Giriş sayfasına dön
         </a>
       </section>
@@ -107,46 +130,62 @@ export const RegisterRequestPage: React.FC = () => {
   }
 
   return (
-    <section className="card fade-in-up" style={{ maxWidth: 480, margin: '3rem auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <span className="badge badge-glow" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>📝</span>
+    <section className="card fade-in-up" style={{ maxWidth: 520, margin: '3rem auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <div style={{
+          width: '56px', height: '56px', borderRadius: '16px',
+          background: 'linear-gradient(135deg, var(--accent), #7c3aed)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 1rem', fontSize: '1.5rem', color: '#fff',
+          boxShadow: '0 8px 24px rgba(37,99,235,0.3)'
+        }}>📝</div>
         <h1>Kayıt Talebi</h1>
-        <p style={{ color: 'var(--text-muted)' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
           Aramıza katılmak için aşağıdaki adımları tamamlayın.
         </p>
       </div>
 
-      <div className="progress-steps" style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-        {['Kişisel', 'Kimlik', 'Hesap'].map((label, index) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', opacity: step === index + 1 ? 1 : 0.4 }}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              width: '1.5rem', height: '1.5rem', borderRadius: '50%', fontSize: '0.75rem', fontWeight: 700,
-              background: step === index + 1 ? 'var(--primary)' : 'rgba(15,23,42,0.08)',
-              color: step === index + 1 ? '#fff' : 'var(--text-muted)'
-            }}>
-              {index + 1}
-            </span>
-            <span style={{ fontSize: '0.85rem', fontWeight: step === index + 1 ? 600 : 400 }}>{label}</span>
-            {index < 2 && <span style={{ margin: '0 0.25rem', color: 'var(--text-muted)' }}>→</span>}
-          </div>
-        ))}
+      {/* Enhanced step indicator */}
+      <div className="register-step-indicator">
+        <div className="register-step-line" />
+        {STEP_LABELS.map((label, index) => {
+          const stepNum = index + 1;
+          const isDone = step > stepNum;
+          const isActive = step === stepNum;
+          return (
+            <div key={label} className={`register-step-dot ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}>
+              <div className="register-step-circle">
+                {isDone ? '✓' : stepNum}
+              </div>
+              <span className="register-step-label">{label}</span>
+            </div>
+          );
+        })}
       </div>
 
-      {error && <p style={{ color: 'var(--danger)', marginBottom: '1rem', padding: '0.75rem', background: 'rgba(239,68,68,0.1)', borderRadius: '8px' }}>{error}</p>}
+      {error && (
+        <div style={{
+          color: '#b91c1c', marginBottom: '1rem', padding: '0.75rem 1rem',
+          background: 'rgba(239,68,68,0.08)', borderRadius: '12px',
+          border: '1px solid rgba(239,68,68,0.15)', fontSize: '0.9rem',
+          animation: 'fade-slide-up 0.3s ease'
+        }}>
+          ⚠️ {error}
+        </div>
+      )}
 
       <form onSubmit={step === 3 ? handleSubmit : handleNext} className="form-grid">
         {step === 1 && (
           <div className="fade-in-up">
             <div className="form-group">
-              <label htmlFor="fullName">Ad Soyad</label>
+              <label htmlFor="fullName">👤 Ad Soyad</label>
               <input
                 id="fullName" className="input" required placeholder="Kimlikteki adınız ve soyadınız"
                 value={fullName} onChange={e => setFullName(e.target.value)}
               />
             </div>
             <div className="form-group">
-              <label htmlFor="studentNumber">Okul Numarası</label>
+              <label htmlFor="studentNumber">🎓 Okul Numarası</label>
               <input
                 id="studentNumber" className="input" required placeholder="Öğrenci numaranız" type="number"
                 value={studentNumber} onChange={e => setStudentNumber(e.target.value)}
@@ -161,10 +200,10 @@ export const RegisterRequestPage: React.FC = () => {
         {step === 2 && (
           <div className="fade-in-up">
             <div className="form-group">
-              <label htmlFor="studentIdFile">Öğrenci Kimliği Fotoğrafı</label>
+              <label htmlFor="studentIdFile">📸 Öğrenci Kimliği Fotoğrafı</label>
               <div style={{
-                border: '2px dashed rgba(15,23,42,0.15)', borderRadius: '12px', padding: '2rem', textAlign: 'center',
-                background: 'rgba(15,23,42,0.02)', cursor: 'pointer', transition: 'all 0.2s ease',
+                border: '2px dashed rgba(37,99,235,0.2)', borderRadius: '16px', padding: '2rem', textAlign: 'center',
+                background: 'rgba(37,99,235,0.02)', cursor: 'pointer', transition: 'all 0.3s ease',
                 position: 'relative'
               }}>
                 <input
@@ -173,12 +212,24 @@ export const RegisterRequestPage: React.FC = () => {
                 />
                 {!preview ? (
                   <div>
-                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📸</div>
-                    <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 500 }}>Fotoğraf yüklemek için tıklayın</p>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📸</div>
+                    <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>Fotoğraf yüklemek için tıklayın</p>
                     <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Maksimum 20MB, JPG/PNG</p>
                   </div>
                 ) : (
-                  <img src={preview} alt="Kimlik Önizleme" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }} />
+                  <div style={{ position: 'relative' }}>
+                    <img src={preview} alt="Kimlik Önizleme" style={{
+                      maxWidth: '100%', maxHeight: '200px', borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.1)'
+                    }} />
+                    <div style={{
+                      position: 'absolute', top: '0.5rem', right: '0.5rem',
+                      background: 'rgba(16,185,129,0.9)', color: '#fff',
+                      borderRadius: '50%', width: '28px', height: '28px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.8rem', fontWeight: 'bold'
+                    }}>✓</div>
+                  </div>
                 )}
               </div>
             </div>
@@ -192,7 +243,7 @@ export const RegisterRequestPage: React.FC = () => {
         {step === 3 && (
           <div className="fade-in-up">
             <div className="form-group">
-              <label htmlFor="desiredUsername">Kullanıcı Adı</label>
+              <label htmlFor="desiredUsername">🔑 Kullanıcı Adı</label>
               <input
                 id="desiredUsername" className="input" required placeholder="kullaniciadiniz"
                 value={desiredUsername} onChange={e => setDesiredUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase())}
@@ -200,26 +251,34 @@ export const RegisterRequestPage: React.FC = () => {
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Sadece harf, rakam ve altçizgi.</p>
             </div>
             <div className="form-group">
-              <label htmlFor="reg-password">Şifre</label>
+              <label htmlFor="reg-password">🔒 Şifre</label>
               <input
                 id="reg-password" className="input" type="password" required minLength={8} placeholder="Min 8 karakter"
                 value={password} onChange={e => setPassword(e.target.value)}
               />
             </div>
             <div className="form-group">
-              <label htmlFor="passwordConfirm">Şifre Tekrarı</label>
+              <label htmlFor="passwordConfirm">🔒 Şifre Tekrarı</label>
               <input
                 id="passwordConfirm" className="input" type="password" required minLength={8} placeholder="Şifrenizi tekrarlayın"
                 value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)}
               />
+              {password && passwordConfirm && (
+                <p style={{
+                  fontSize: '0.8rem', marginTop: '0.25rem',
+                  color: password === passwordConfirm ? 'var(--success)' : 'var(--danger)'
+                }}>
+                  {password === passwordConfirm ? '✓ Şifreler eşleşiyor' : '✗ Şifreler eşleşmiyor'}
+                </p>
+              )}
             </div>
-            
+
             <ResponsibilityAgreement checked={agreementAccepted} onChange={setAgreementAccepted} />
 
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
               <button className="button ghost" type="button" onClick={handlePrev}>← Geri</button>
               <button className="button" type="submit" disabled={loading || !agreementAccepted} style={{ flex: 1 }}>
-                {loading ? 'Gönderiliyor...' : 'Kayıt Talebi Gönder'}
+                {loading ? 'Gönderiliyor...' : '🚀 Kayıt Talebi Gönder'}
               </button>
             </div>
           </div>
@@ -227,7 +286,7 @@ export const RegisterRequestPage: React.FC = () => {
       </form>
 
       <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-        Zaten hesabınız var mı? <a href="/login" style={{ color: 'var(--primary)', fontWeight: 500 }}>Giriş Yap</a>
+        Zaten hesabınız var mı? <a href="/login" style={{ color: 'var(--accent)', fontWeight: 600 }}>Giriş Yap</a>
       </p>
     </section>
   );
